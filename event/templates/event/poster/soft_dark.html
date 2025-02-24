@@ -1,0 +1,96 @@
+{% load poster_tags %}
+
+<!DOCTYPE html>
+<html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-size: 14px;
+        background-color: black;
+    }
+    .app_title {
+      width: 100%;
+      color: {{ palette.color }};
+      position: absolute;
+      top: 1010px;
+      font-family: Lexend;
+      font-weight: Bold;
+      font-size: 49px;
+      opacity: 1;
+      text-align: center;
+    }
+    .app_moto {
+      width: 100%;
+      color: {{ palette.light_color }};
+      position: absolute;
+      top: 1065px;
+      font-family: Lexend;
+      font-weight: Bold;
+      font-size: 14px;
+      opacity: 1;
+      text-align: center;
+    }
+    .powered_by {
+      width: 100%;
+      color: {{ palette.light_color }};
+      position: absolute;
+      top: 990px;
+      font-family: Lexend;
+      font-weight: Bold;
+      font-size: 20px;
+      opacity: 1;
+      text-align: center;
+    }
+    .event_title {
+      width: 100%;
+      color: {{ palette.color }};
+      position: absolute;
+      top: 145px;
+      font-family: Lexend;
+      font-weight: Bold;
+      font-size: 75px;
+      opacity: 1;
+      text-align: center;
+    }
+    .qrcode_label {
+      width: 100%;
+      color: {{ palette.light_color }};
+      position: absolute;
+      top: 675px;
+      font-family: Lexend;
+      font-weight: bold;
+      font-size: 40px;
+      opacity: 1;
+      text-align: center;
+    }
+
+    .qrcode_wrapper {
+        width: 100%;
+        position: absolute;
+        top: 375px;
+        display: flex;
+        justify-content: center;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        opacity: 1;
+        overflow: hidden;
+    }
+  </style>
+  <title>Document</title>
+</head>
+<body>
+    <span class="app_title">Flashbacks</span>
+    <span class="app_moto">Share memories and connect the dots</span>
+    <span class="powered_by">POWERED BY</span>
+    <span class="event_title">{{ event.title|upper }}</span>
+    <strong class="qrcode_label">SCAN QR CODE TO JOIN</strong>
+    <div class="qrcode_wrapper">
+        <img alt="qrcode" src="{% generate_qrcode_for_event event "black" "white" %}" class="qrcode" />
+    </div>
+</body>
+</html>

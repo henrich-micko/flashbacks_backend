@@ -1,0 +1,74 @@
+# General
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+*.log
+.DS_Store
+.env
+.venv/
+venv/
+env/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Django-specific
+db.sqlite3
+media/
+staticfiles/
+static/
+
+# Migrations (optional, if you don't want to track migration history)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.pyd
+
+# Pipenv, Poetry
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Celery
+celerybeat-schedule
+
+# VSCode and JetBrains settings
+*.iml
+.vscode/
+.idea/
+
+# Pytest and Coverage reports
+.coverage
+htmlcov/
+*.cover
+*.py,cover
+.cache
+nosetests.xml
+coverage.xml
+*.mo
+*.pot
+
+# Docker
+*.pid
+*.sock
+logs/
+docker-compose.override.yml
+
+# Node modules (if using frontend inside Django project)
+node_modules/
+
+# Security-related
+.env
+.env.*
+config/settings/local.py
+config/settings/*.local
+
+flashbacks-google-api.json

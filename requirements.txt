@@ -16,3 +16,4 @@ redis
 segno
 weasyprint
 django-celery-beat
+python-dotenv

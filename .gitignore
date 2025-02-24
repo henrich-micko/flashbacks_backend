@@ -72,3 +72,5 @@ config/settings/local.py
 config/settings/*.local
 
 flashbacks-google-api.json
+
+datafiles/

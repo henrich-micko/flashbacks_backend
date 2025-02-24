@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "friendship.apps.FriendshipConfig",
     "event.apps.EventConfig",
     "chat.apps.ChatConfig",
+    "utils.apps.UtilsConfig"
 ]
 
 AUTH_USER_MODEL = "user.User"
@@ -187,7 +188,16 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), "mediafiles")
+MEDIA_ROOT = os.getenv(
+    "MEDIA_ROOT", os.path.join(os.path.dirname(BASE_DIR), "mediafiles")
+)
+
+STATIC_ROOT = os.getenv(
+    "STATIC_ROOT", os.path.join(os.path.dirname(BASE_DIR), "staticfiles")
+)
+
+print(MEDIA_ROOT, STATIC_ROOT)
+
 MEDIA_URL = "/api/media/"
 
 APPEND_SLASH = False

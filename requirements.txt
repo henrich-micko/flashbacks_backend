@@ -21,3 +21,4 @@ asgiref
 sqlparse
 psycopg2-binary
 gunicorn
+uvicorn

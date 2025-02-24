@@ -17,3 +17,7 @@ segno
 weasyprint
 django-celery-beat
 python-dotenv
+asgiref
+sqlparse
+psycopg2-binary
+gunicorn

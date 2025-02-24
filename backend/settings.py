@@ -196,8 +196,6 @@ STATIC_ROOT = os.getenv(
     "STATIC_ROOT", os.path.join(os.path.dirname(BASE_DIR), "staticfiles")
 )
 
-print(MEDIA_ROOT, STATIC_ROOT)
-
 MEDIA_URL = "/api/media/"
 
 APPEND_SLASH = False

@@ -1,6 +1,5 @@
-from django.db.models import QuerySet
 from rest_framework.exceptions import ParseError, ValidationError
-from typing import Any, Protocol
+from typing import Any
 
 
 def prevent_not_null(*args: Any) -> None:

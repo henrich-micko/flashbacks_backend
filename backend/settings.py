@@ -65,7 +65,8 @@ INSTALLED_APPS = [
     "friendship.apps.FriendshipConfig",
     "event.apps.EventConfig",
     "chat.apps.ChatConfig",
-    "utils.apps.UtilsConfig"
+    "utils.apps.UtilsConfig",
+    "web.apps.WebConfig",
 ]
 
 AUTH_USER_MODEL = "user.User"

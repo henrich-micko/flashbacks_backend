@@ -215,35 +215,6 @@ CHANNEL_LAYERS = {
     },
 }
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',  # Show all logs at DEBUG level and above
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'channels.consumer': {  # Logs for consumers (WebSocket consumers)
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-    },
-}
-
 ANONYMOUS_USER = {
     "pk": -1,
     "id": -1,
@@ -284,3 +255,54 @@ SESSION_ENGINE = "django.contrib.sessions.backends.db"
 if os.getenv("LOGGING_DIR", None) is not None:
     LOGGING_DIR = os.getenv("LOGGING_DIR")
     os.makedirs(LOGGING_DIR, exist_ok=True)
+
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "[{levelname}] {asctime} {module} - {message}",
+                "style": "{",
+            },
+            "simple": {
+                "format": "[{levelname}] {message}",
+                "style": "{",
+            },
+        },
+        "handlers": {
+            "file": {
+                "level": "DEBUG",
+                "class": "logging.FileHandler",
+                "filename": os.path.join(LOGGING_DIR, "django.log"),
+                "formatter": "verbose",
+            },
+            "console": {
+                "level": "DEBUG",
+                "class": "logging.StreamHandler",
+                "formatter": "simple",
+            },
+        },
+        "loggers": {
+            "django": {
+                "handlers": ["file", "console"],
+                "level": "DEBUG",
+                "propagate": True,
+            },
+            "django.request": {
+                "handlers": ["file", "console"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
+            "django.security": {
+                "handlers": ["file", "console"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
+            "channels": {
+                "handlers": ["file", "console"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
+        },
+    }
+

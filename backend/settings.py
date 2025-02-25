@@ -273,3 +273,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/1'),  # Replace X with the number of minutes
     },
 }
+
+SESSION_COOKIE_SECURE = True  # If using HTTPS
+CSRF_COOKIE_SECURE = True

@@ -280,3 +280,7 @@ CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", None)
 SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", None)
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+if os.getenv("LOGGING_DIR", None) is not None:
+    LOGGING_DIR = os.getenv("LOGGING_DIR")
+    os.makedirs(LOGGING_DIR, exist_ok=True)

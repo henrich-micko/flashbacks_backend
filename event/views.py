@@ -148,7 +148,7 @@ class EventViewSet(SearchAPIMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def get_viewer(self, request, **kwargs):
-        viewer = get_object_or_404(event_models.EventViewer.objects.all(), event=self.get_object())
+        viewer = get_object_or_404(event_models.EventViewer.objects.all(), event=self.get_object(), user=self.request.user)
         return Response(
             event_serializers.EventViewerSerializer(instance=viewer).data,
             status=status.HTTP_200_OK

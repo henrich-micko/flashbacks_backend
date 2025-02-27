@@ -257,51 +257,46 @@ if os.getenv("LOGGING_DIR", None) is not None:
     os.makedirs(LOGGING_DIR, exist_ok=True)
 
     LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "verbose": {
-                "format": "[{levelname}] {asctime} {module} - {message}",
-                "style": "{",
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {message}',
+                'style': '{',
             },
-            "simple": {
-                "format": "[{levelname}] {message}",
-                "style": "{",
-            },
-        },
-        "handlers": {
-            "file": {
-                "level": "DEBUG",
-                "class": "logging.FileHandler",
-                "filename": os.path.join(LOGGING_DIR, "django.log"),
-                "formatter": "verbose",
-            },
-            "console": {
-                "level": "DEBUG",
-                "class": "logging.StreamHandler",
-                "formatter": "simple",
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
             },
         },
-        "loggers": {
-            "django": {
-                "handlers": ["file", "console"],
-                "level": "DEBUG",
-                "propagate": True,
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
             },
-            "django.request": {
-                "handlers": ["file", "console"],
-                "level": "DEBUG",
-                "propagate": False,
+            'file': {
+                'level': 'ERROR',
+                'class': 'logging.FileHandler',
+                'filename': 'error.log',
+                'formatter': 'verbose',
             },
-            "django.security": {
-                "handlers": ["file", "console"],
-                "level": "DEBUG",
-                "propagate": False,
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': True,
             },
-            "channels": {
-                "handlers": ["file", "console"],
-                "level": "DEBUG",
-                "propagate": False,
+            'django.server': {
+                'handlers': ['console'],
+                'level': 'ERROR',
+                'propagate': False,
+            },
+            'myapp': {
+                'handlers': ['file'],
+                'level': 'ERROR',
+                'propagate': False,
             },
         },
     }

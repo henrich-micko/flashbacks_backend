@@ -144,7 +144,15 @@ class EventViewSet(SearchAPIMixin, viewsets.ModelViewSet):
             event_models.EventInviteCode.objects.all(), code=invite_code_value
         )
         invite_code.add_member(request.user)
-        return Response({}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"])
+    def check_invite_code(self, request, **kwargs):
+        invite_code_value = parse_str_value(request.query_params, "code")
+        invite_code: event_models.EventInviteCode = get_object_or_404(
+            event_models.EventInviteCode.objects.all(), code=invite_code_value
+        )
+        return Response(self.get_serializer(invite_code.event).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
     def get_viewer(self, request, **kwargs):
@@ -156,7 +164,6 @@ class EventViewSet(SearchAPIMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def set_preview(self, request, **kwargs):
-        print(self.request.data)
         for order in self.request.data.keys():
             if type(order) is not str and type(order) is not int:
                 continue

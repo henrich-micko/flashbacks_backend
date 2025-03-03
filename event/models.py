@@ -80,9 +80,9 @@ class Event(models.Model):
         except EventMember.DoesNotExist: return False
         return True
 
-    def add_member_from_invite_code(self, user: "User", invite_code: "EventInviteCode"):
+    def add_member_from_invite_code(self, user: "User"):
         return EventMember.objects.get_or_create(
-            event=self, user=user, role=EventMemberRole.GUEST, added_by=self.host
+            event=self, user=user, role=EventMemberRole.GUEST, added_by=self.host.user
         )
 
     def add_member_from_invite(self, event_invite: "EventInvite"):
@@ -347,7 +347,7 @@ class EventInviteCode(models.Model):
         return f"data:image/png;base64,{qr_code_base64}"
 
     def add_member(self, user):
-        self.event.add_member_from_invite_code(user, self)
+        self.event.add_member_from_invite_code(user)
 
 
 class EventPosterTemplate(models.Model):

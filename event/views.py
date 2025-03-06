@@ -154,7 +154,7 @@ class EventViewSet(SearchAPIMixin, viewsets.ModelViewSet):
         )
         return Response(self.get_serializer(invite_code.event).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=["get"])
+    @action(detail=True, methods=["get"])
     def get_invite_code(self, request, **kwargs):
         invite = event_models.EventInviteCode.objects.get_or_create(event=self.get_object())
         return Response({"code": invite.code}, status=status.HTTP_200_OK)

@@ -154,6 +154,11 @@ class EventViewSet(SearchAPIMixin, viewsets.ModelViewSet):
         )
         return Response(self.get_serializer(invite_code.event).data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=["get"])
+    def get_invite_code(self, request, **kwargs):
+        invite = event_models.EventInviteCode.objects.get_or_create(event=self.get_object())
+        return Response({"code": invite.code}, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"])
     def get_viewer(self, request, **kwargs):
         viewer = get_object_or_404(event_models.EventViewer.objects.all(), event=self.get_object(), user=self.request.user)
@@ -188,12 +193,16 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
     serializer_class = event_serializers.FlashbackSerializer
 
     def get_queryset(self):
-        event_member = get_object_or_exception(
-            event_models.EventMember.objects.all(), PermissionDenied(),
+        event_viewer = get_object_or_exception(
+            event_models.EventViewer.objects.all(), PermissionDenied(),
             event__pk=self.kwargs.get("event_id"),
             user__pk=self.request.user.pk
         )
-        queryset = event_models.Flashback.objects.filter(event_member=event_member)
+
+        queryset = event_models.Flashback.objects.filter(
+            event_member__event__pk=event_viewer.event.pk
+        )
+
         return queryset
 
     def perform_create(self, serializer):

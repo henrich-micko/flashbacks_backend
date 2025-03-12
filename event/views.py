@@ -9,10 +9,12 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
+from celery import chain
+
 from event import serializers as event_serializers
 from event import models as event_models
 from event.permissions import IsEventHost
-from event.tasks import check_nsfw_flashbacks
+from event.tasks import check_nsfw_flashbacks, process_flashback
 from user.serializers import MiniUserSerializer, MiniUserContextualSerializer
 from user.models import User
 from utils.shortcuts import get_object_or_exception
@@ -212,8 +214,12 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
             user=self.request.user
         )
 
-        instance = serializer.save(event_member=event_member)
-        check_nsfw_flashbacks.delay(instance.id)
+        instance: event_models.Flashback = serializer.save(event_member=event_member)
+        task_chain = chain(
+            process_flashback.s(instance.id) | check_nsfw_flashbacks.s(instance.id)
+        )
+        task_chain()
+        return instance
 
     @action(detail=True, methods=["post"])
     def mark_as_seen(self, request, pk):

@@ -235,14 +235,24 @@ def upload_flashback_to(instance, filename):
     return f"flashback/{uuid.uuid4()}.{extension}"
 
 
+class FlashbackMediaType(models.IntegerChoices):
+    PHOTO = 0, "photo"
+    VIDEO = 1, "video"
+
+
 class Flashback(models.Model):
     objects = FlashbackQuerySet.as_manager()
 
     event_member = models.ForeignKey(EventMember, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
-    media = models.ImageField(upload_to=upload_flashback_to, blank=True, null=True)
+    media = models.ImageField(upload_to=upload_flashback_to, blank=True, null=True, default=None)
     visibility = models.IntegerField(default=FlashbackVisibilityMode.PUBLIC, choices=FlashbackVisibilityMode.choices)
     is_nsfw = models.BooleanField(default=False)
+
+    media_type = models.IntegerField(default=FlashbackMediaType.PHOTO, choices=FlashbackMediaType.choices)
+    video_media = models.FileField(upload_to=upload_flashback_to, blank=True, null=True, default=None)
+
+    is_processed = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"{self.event_member} flashback [{self.id}]"
@@ -256,7 +266,11 @@ class Flashback(models.Model):
         return self.event_member.event
 
     def check_nsfw(self):
-        categories, self.is_nsfw = check_nsfw_google(self.media)
+        media = self.media if self.media_type == FlashbackMediaType.PHOTO.value else self.video_media
+        if not media:
+            return
+
+        categories, self.is_nsfw = check_nsfw_google(media.path)
         self.save()
 
 

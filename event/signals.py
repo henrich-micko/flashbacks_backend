@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
-from event import models
+from event import models, tasks
 
 
 @receiver(post_save, sender=models.EventInvite)

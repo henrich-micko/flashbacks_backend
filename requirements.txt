@@ -22,3 +22,4 @@ sqlparse
 psycopg2-binary
 gunicorn
 uvicorn
+opencv-python

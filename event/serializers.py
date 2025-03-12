@@ -129,7 +129,6 @@ class EventMemberSerializer(serializers.ModelSerializer):
 
 
 class FlashbackSerializer(serializers.ModelSerializer):
-    media = serializers.ImageField(required=True)
     created_by = serializers.SerializerMethodField()
     preview_order = serializers.SerializerMethodField()
 
@@ -138,9 +137,11 @@ class FlashbackSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "media",
-            "created_by",
+            "media_type",
+            "video_media",
             "created_at",
-            "preview_order"
+            "created_by",
+            "preview_order",
         ]
 
     def get_created_by(self, obj: models.Flashback):
@@ -149,6 +150,15 @@ class FlashbackSerializer(serializers.ModelSerializer):
     def get_preview_order(self, obj: models.Flashback):
         preview = obj.eventpreview_set.first()
         return preview.order if preview is not None else None
+
+    def validate(self, data):
+        media = data.get("media")
+        video_media = data.get("video_media")
+
+        if not media and not video_media:
+            raise serializers.ValidationError("Either 'media' or 'video_media' must be provided.")
+
+        return data
 
 
 class FlashbackViewerSerializer(serializers.ModelSerializer):

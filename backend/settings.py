@@ -301,3 +301,6 @@ if os.getenv("LOGGING_DIR", None) is not None:
         },
     }
 
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024  # 500MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024  # 500MB

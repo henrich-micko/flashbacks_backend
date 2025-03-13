@@ -89,9 +89,13 @@ class Event(models.Model):
         return True
 
     def add_member_from_invite_code(self, user: "User"):
-        return EventMember.objects.get_or_create(
-            event=self, user=user, role=EventMemberRole.GUEST, added_by=self.host.user
+        instance, created = EventMember.objects.get_or_create(
+            event=self, user=user
         )
+
+        if created:
+            instance.added_by = self.host.user
+            instance.save()
 
     def add_member_from_invite(self, event_invite: "EventInvite"):
         return EventMember.objects.get_or_create(
@@ -312,6 +316,7 @@ class Flashback(models.Model):
             's3',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_DEFAULT_REGION
         )
 
         signed_url = s3.generate_presigned_url(

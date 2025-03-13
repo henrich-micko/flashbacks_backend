@@ -21,7 +21,7 @@ def check_nsfw_photo_aws(media_path):
         'rekognition',
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name='us-east-1'  # Your region
+        region_name=settings.AWS_DEFAULT_REGION # Your region
     )
 
     response = rekognition.detect_moderation_labels(
@@ -37,7 +37,7 @@ def start_video_moderation(media_path):
         'rekognition',
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name='us-east-1'
+        region_name=settings.AWS_DEFAULT_REGION
     )
 
     response = rekognition.start_content_moderation(

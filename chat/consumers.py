@@ -87,7 +87,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         event_group_name = self.event_group_name_format.format(event_id=event_id)
         await self.channel_layer.group_add(event_group_name, self.channel_name)
 
-        print("added to group")
+        print("added to group", self.user)
 
     """
     request handler
@@ -165,7 +165,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         self.joined_groups = set()
         await self.add_user_to_groups()
-        print(self.joined_groups)
         await self.accept()
 
     async def disconnect(self, close_code):

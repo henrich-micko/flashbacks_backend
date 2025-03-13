@@ -210,9 +210,6 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
             event_member__event__pk=event_viewer.event.pk
         )
 
-        if not event_viewer.event.allow_nsfw:
-            queryset = queryset.filter(is_nsfw__in=[True, None])
-
         return queryset
 
     def perform_create(self, serializer):
@@ -268,6 +265,7 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
             's3',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_DEFAULT_REGION
         )
 
         storage = s3_client.generate_presigned_url(

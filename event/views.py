@@ -1,3 +1,5 @@
+import uuid
+
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, FileResponse
@@ -21,6 +23,9 @@ from utils.shortcuts import get_object_or_exception
 from utils.mixins import SearchAPIMixin
 from utils.views import parse_int_value, parse_str_value, parse_boolean_value
 from event.status import EventMemberStatus
+
+import boto3
+from django.conf import settings
 
 
 class EventViewSet(SearchAPIMixin, viewsets.ModelViewSet):
@@ -214,12 +219,29 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
             user=self.request.user
         )
 
-        instance: event_models.Flashback = serializer.save(event_member=event_member)
-        task_chain = chain(
-            process_flashback.s(instance.id) | check_nsfw_flashbacks.s(instance.id)
+        return serializer.save(event_member=event_member)
+
+    def create(self, request, *args, **kwargs):
+        event_member = get_object_or_exception(
+            event_models.EventMember.objects.all(), PermissionDenied(),
+            event__pk=self.kwargs.get("event_id", None),
+            user=self.request.user
         )
-        task_chain()
-        return instance
+
+        if event_member.event.status != event_models.EventStatus.ACTIVATED:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = event_serializers.CreateFlashbackSerializer(data=request.data)
+        if serializer.is_valid():
+            event_models.Flashback.objects.create(
+                media=serializer.validated_data.get("media", None),
+                video_media=serializer.validated_data.get("video_media", None),
+                media_type=serializer.validated_data["media_type"],
+                event_member=event_member,
+            )
+
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
     def mark_as_seen(self, request, pk):
@@ -229,6 +251,33 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
 
         flashback_viewer.is_seen = True
         flashback_viewer.save()
+
+    @action(detail=False, methods=["get"])
+    def generate_storage(self, request, **kwargs):
+        media_type = parse_int_value(self.request.query_params, "mt")
+        if media_type == event_models.FlashbackMediaType.PHOTO.value:
+            content_type, file_extension = "image/jpeg", "jpg"
+        else:
+            content_type, file_extension = "video/mp4", "mp4"
+        file_path = f"media/private/flashback/{uuid.uuid4()}.{file_extension}"
+
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
+
+        storage = s3_client.generate_presigned_url(
+            'put_object',
+            Params={
+                'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                'Key': file_path,
+                "ContentType": content_type,
+            },
+            ExpiresIn=3600
+        )
+
+        return Response({"storage": storage, "path": file_path}, status=status.HTTP_200_OK)
 
 
 class MemberViewSet(mixins.ListModelMixin,

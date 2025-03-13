@@ -63,6 +63,8 @@ INSTALLED_APPS = [
 
     "django_celery_beat",
 
+    'storages',
+
     "user.apps.UserConfig",
     "friendship.apps.FriendshipConfig",
     "event.apps.EventConfig",
@@ -244,6 +246,14 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'event.tasks.check_event_status',
         'schedule': crontab(minute='*/1'),  # Replace X with the number of minutes
     },
+    "check_flashbacks_nsfw": {
+        'task': 'event.tasks.check_flashbacks_nsfw',
+        'schedule': crontab(minute='*/1'),  # Replace X with the number of minutes
+    },
+    "process_flashbacks": {
+        'task': 'event.tasks.process_flashbacks',
+        'schedule': crontab(minute='*/1'),  # Replace X with the number of minutes
+    },
 }
 
 SESSION_COOKIE_SECURE = True  # If using HTTPS
@@ -304,3 +314,16 @@ if os.getenv("LOGGING_DIR", None) is not None:
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024  # 500MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024  # 500MB
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_DEFAULT_ACL = None
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+
+AWS_PUBLIC_MEDIA_LOCATION = 'media/public'
+DEFAULT_FILE_STORAGE = 'backend.storage_backends.PublicMediaStorage'
+
+AWS_PRIVATE_MEDIA_LOCATION = 'media/private'
+PRIVATE_FILE_STORAGE = 'backend.storage_backends.PrivateMediaStorage'

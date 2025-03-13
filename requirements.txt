@@ -23,3 +23,6 @@ psycopg2-binary
 gunicorn
 uvicorn
 opencv-python
+django-storages
+boto3
+ffmpeg-python

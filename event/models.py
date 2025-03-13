@@ -4,18 +4,26 @@ import segno
 import io
 import weasyprint
 import base64
+import cv2
+import boto3
+import ffmpeg
+import os
 from enum import Enum
 
 from django.db import models
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.files.base import ContentFile
 
 from event.managers import EventQuerySet, FlashbackQuerySet
 from event.validators import hex_color_validator
 from user.models import User
 from utils.nsfw_detection import check_nsfw_google
 from utils import colors
+from backend.storage_backends import PrivateMediaStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
 
 
 EVENT_PREVIEW_COUNT_MAX = 3
@@ -245,14 +253,19 @@ class Flashback(models.Model):
 
     event_member = models.ForeignKey(EventMember, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
-    media = models.ImageField(upload_to=upload_flashback_to, blank=True, null=True, default=None)
     visibility = models.IntegerField(default=FlashbackVisibilityMode.PUBLIC, choices=FlashbackVisibilityMode.choices)
-    is_nsfw = models.BooleanField(default=False)
 
     media_type = models.IntegerField(default=FlashbackMediaType.PHOTO, choices=FlashbackMediaType.choices)
-    video_media = models.FileField(upload_to=upload_flashback_to, blank=True, null=True, default=None)
-
     is_processed = models.BooleanField(default=False)
+
+    media = models.ImageField(
+        upload_to=upload_flashback_to, blank=True, null=True, default=None, storage=PrivateMediaStorage(),
+    )
+    video_media = models.FileField(
+        upload_to=upload_flashback_to, blank=True, null=True, default=None, storage=PrivateMediaStorage(),
+    )
+
+    is_nsfw = models.BooleanField(null=True, blank=True, default=None)
 
     def __str__(self) -> str:
         return f"{self.event_member} flashback [{self.id}]"
@@ -269,9 +282,78 @@ class Flashback(models.Model):
         media = self.media if self.media_type == FlashbackMediaType.PHOTO.value else self.video_media
         if not media:
             return
-
         categories, self.is_nsfw = check_nsfw_google(media.path)
         self.save()
+
+    def process_media(self):
+        if self.media_type == FlashbackMediaType.VIDEO:
+            self._process_video_media()
+        elif self.media_type == FlashbackMediaType.PHOTO:
+            self._process_photo_media()
+
+    def _process_photo_media(self):
+        self.is_processed = True
+        self.save()
+
+    def _process_video_media(self):
+        if self.media_type != FlashbackMediaType.VIDEO:
+            return
+
+        if self._generate_media_for_video():
+            self.is_processed = True
+            self.save()
+
+    def _generate_media_for_video(self):
+        if self.media_type != FlashbackMediaType.VIDEO or not self.video_media:
+            return
+
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
+
+        signed_url = s3.generate_presigned_url(
+            'get_object',
+            Params={
+                'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                'Key': f"media/private/{self.video_media.name}"
+            },
+            ExpiresIn=3600
+        )
+
+        file_path = f"media/private/flashback/{uuid.uuid4()}.jpg"
+        temp_file_path = f"datafiles/{uuid.uuid4()}.jpg"
+
+        try:
+            ffmpeg.input(signed_url, ss=0).output(temp_file_path, vframes=1, format='image2', update=1).run()
+
+            with open(temp_file_path, 'rb') as img_file:
+                image_data = img_file.read()
+                image_in_memory = io.BytesIO(image_data)
+
+                # Convert the in-memory image data into a Django InMemoryUploadedFile
+                uploaded_image = InMemoryUploadedFile(
+                    image_in_memory,  # File-like object
+                    None,  # Field name (None for now)
+                    file_path,  # Desired filename
+                    'image/jpeg',  # Mime type
+                    len(image_data),  # File size
+                    None  # Charset
+                )
+
+                self.media.save(file_path, uploaded_image)
+                self.save()
+
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
+                return True
+            else:
+                print("Error: Frame not saved")
+        except ffmpeg.Error as e:
+            print(f"Error extracting frame: {e}")
+
+        return False
 
 
 class EventPreview(models.Model):

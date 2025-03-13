@@ -161,6 +161,30 @@ class FlashbackSerializer(serializers.ModelSerializer):
         return data
 
 
+class CreateFlashbackSerializer(serializers.Serializer):
+    media = serializers.CharField(max_length=255, required=False)
+    video_media = serializers.CharField(max_length=255, required=False)
+    media_type = serializers.ChoiceField(choices=models.FlashbackMediaType)
+
+    class Meta:
+        model = models.Flashback
+        fields = [
+            "media",
+            "video_media",
+            "media_type",
+        ]
+
+    def validate_media(self, value: str):
+        return value.replace("media/private/", "")
+
+    def validate_video_media(self, value: str):
+        return value.replace("media/private/", "")
+
+    def validate(self, attrs):
+        if attrs.get("media", None) is None and attrs.get("video_media", None) is None:
+            raise serializers.ValidationError("At least one")
+        return attrs
+
 class FlashbackViewerSerializer(serializers.ModelSerializer):
 
     class Meta:

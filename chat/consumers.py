@@ -57,8 +57,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 print(f"Error: {event_group_name} group add failed.")
                 continue
             self.joined_groups.add(event_group_name)
+
         await self.channel_layer.group_add("notification", self.channel_name)
         self.joined_groups.add("notification")
+
+        user_group = f"user_{self.user.id}"
+        await self.channel_layer.group_add(user_group, self.channel_name)
+        self.joined_groups.add(user_group)
 
     async def remove_user_from_groups(self):
         for group in self.joined_groups.copy():
@@ -76,6 +81,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def get_user_events(self):
         return list(self.user.events)
+
+    async def add_user_to_group(self, event):
+        event_id = event["event_id"]
+        event_group_name = self.event_group_name_format.format(event_id=event_id)
+        await self.channel_layer.group_add(event_group_name, self.channel_name)
+
+        print("added to group")
 
     """
     request handler

@@ -210,6 +210,9 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
             event_member__event__pk=event_viewer.event.pk
         )
 
+        if not event_viewer.event.allow_nsfw:
+            queryset = queryset.filter(is_nsfw__in=[True, None])
+
         return queryset
 
     def perform_create(self, serializer):

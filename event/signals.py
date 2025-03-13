@@ -8,10 +8,12 @@ from event import models, tasks
 def check_event_invite_status(sender, instance, **kwargs):
     instance.process()
 
+
 @receiver(post_save, sender=models.EventPosterTemplateColorPalette)
 def color_palette_post_save(sender, instance, **kwargs):
     if kwargs["created"]:
         instance.generate_colors()
+
 
 @receiver(pre_delete, sender=models.Flashback)
 def check_for_preview(sender, instance, **kwargs):

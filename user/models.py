@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from user.manager import UserManager
-from utils.nsfw_detection import check_nsfw_google
+from utils.nsfw_detection import check_nsfw_photo_aws
 
 
 def upload_profile_to(instance, filename):
@@ -44,6 +44,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.pk}:{self.username}"
+
+    @property
+    def profile_key(self):
+        return f"media/public/{self.profile}"
 
     @property
     def friendship_set(self):
@@ -90,7 +94,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.events.filter(start_at__lte=curr_time, end_at__gte=curr_time).first()
 
     def check_nsfw_profile_picture(self):
-        categories, is_nsfw = check_nsfw_google(self.profile.path)
+        categories, is_nsfw = check_nsfw_photo_aws(self.profile_key)
         if is_nsfw:
             self.profile = default_profile_picture()
             self.save()

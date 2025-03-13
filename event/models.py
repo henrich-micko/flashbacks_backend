@@ -19,7 +19,7 @@ from django.core.files.base import ContentFile
 from event.managers import EventQuerySet, FlashbackQuerySet
 from event.validators import hex_color_validator
 from user.models import User
-from utils.nsfw_detection import check_nsfw_google
+from utils.nsfw_detection import check_nsfw_photo_aws, start_video_moderation, get_video_moderation_results
 from utils import colors
 from backend.storage_backends import PrivateMediaStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -271,19 +271,20 @@ class Flashback(models.Model):
         return f"{self.event_member} flashback [{self.id}]"
 
     @property
+    def video_media_key(self):
+        return f"media/private/{self.video_media.name}" if self.video_media else None
+
+    @property
+    def media_key(self):
+        return f"media/private/{self.media.name}" if self.media else None
+
+    @property
     def user(self) -> User:
         return self.event_member.user
 
     @property
     def event(self) -> Event:
         return self.event_member.event
-
-    def check_nsfw(self):
-        media = self.media if self.media_type == FlashbackMediaType.PHOTO.value else self.video_media
-        if not media:
-            return
-        categories, self.is_nsfw = check_nsfw_google(media.path)
-        self.save()
 
     def process_media(self):
         if self.media_type == FlashbackMediaType.VIDEO:
@@ -354,6 +355,19 @@ class Flashback(models.Model):
             print(f"Error extracting frame: {e}")
 
         return False
+
+
+class FlashbackVideoCheckNsfwJob(models.Model):
+    flashback = models.OneToOneField(Flashback, on_delete=models.CASCADE, related_name='nsfw_job')
+    job_id = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.flashback} checking nsfw"
+
+    @property
+    def is_valid(self):
+        return timezone.now() - self.created_at < timezone.timedelta(days=1)
 
 
 class EventPreview(models.Model):

@@ -324,7 +324,7 @@ class Flashback(models.Model):
         )
 
         file_path = f"media/private/flashback/{uuid.uuid4()}.jpg"
-        temp_file_path = f"datafiles/{uuid.uuid4()}.jpg"
+        temp_file_path = f"{settings.DATAFILES_DIR}/{uuid.uuid4()}.jpg"
 
         try:
             ffmpeg.input(signed_url, ss=0).output(temp_file_path, vframes=1, format='image2', update=1).run()

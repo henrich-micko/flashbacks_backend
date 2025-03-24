@@ -4,26 +4,20 @@ import segno
 import io
 import weasyprint
 import base64
-import cv2
-import boto3
-import ffmpeg
-import os
 from enum import Enum
 
 from django.db import models
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.conf import settings
-from django.core.files.base import ContentFile
 
 from event.managers import EventQuerySet, FlashbackQuerySet
 from event.validators import hex_color_validator
 from user.models import User
-from utils.nsfw_detection import check_nsfw_photo_aws, start_video_moderation, get_video_moderation_results
 from utils import colors
+from utils.nsfw_detection import get_video_moderation_results
+from utils.media import generate_video_thumbnail
 from backend.storage_backends import PrivateMediaStorage
-from django.core.files.uploadedfile import InMemoryUploadedFile
-
 
 
 EVENT_PREVIEW_COUNT_MAX = 3
@@ -310,55 +304,12 @@ class Flashback(models.Model):
 
     def _generate_media_for_video(self):
         if self.media_type != FlashbackMediaType.VIDEO or not self.video_media:
-            return
-
-        s3 = boto3.client(
-            's3',
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_DEFAULT_REGION
-        )
-
-        signed_url = s3.generate_presigned_url(
-            'get_object',
-            Params={
-                'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
-                'Key': f"media/private/{self.video_media.name}"
-            },
-            ExpiresIn=3600
-        )
-
-        file_path = f"media/private/flashback/{uuid.uuid4()}.jpg"
-        temp_file_path = f"{settings.DATAFILES_DIR}/{uuid.uuid4()}.jpg"
-
-        try:
-            ffmpeg.input(signed_url, ss=0).output(temp_file_path, vframes=1, format='image2', update=1).run()
-
-            with open(temp_file_path, 'rb') as img_file:
-                image_data = img_file.read()
-                image_in_memory = io.BytesIO(image_data)
-
-                # Convert the in-memory image data into a Django InMemoryUploadedFile
-                uploaded_image = InMemoryUploadedFile(
-                    image_in_memory,  # File-like object
-                    None,  # Field name (None for now)
-                    file_path,  # Desired filename
-                    'image/jpeg',  # Mime type
-                    len(image_data),  # File size
-                    None  # Charset
-                )
-
-                self.media.save(file_path, uploaded_image)
-                self.save()
-
-            if os.path.exists(temp_file_path):
-                os.remove(temp_file_path)
-                return True
-            else:
-                print("Error: Frame not saved")
-        except ffmpeg.Error as e:
-            print(f"Error extracting frame: {e}")
-
+            return False
+        image = generate_video_thumbnail(self.video_media_key)
+        if image:
+            self.media.save(image.name, image)
+            self.save()
+            return True
         return False
 
 
@@ -373,6 +324,9 @@ class FlashbackVideoCheckNsfwJob(models.Model):
     @property
     def is_valid(self):
         return timezone.now() - self.created_at < timezone.timedelta(days=1)
+
+    def load_result(self):
+        return get_video_moderation_results(self.job_id)
 
 
 class EventPreview(models.Model):

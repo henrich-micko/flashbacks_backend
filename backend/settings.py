@@ -16,6 +16,8 @@ from celery import Celery
 from celery.schedules import crontab
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
+from celery.schedules import timedelta
+
 
 load_dotenv()
 
@@ -246,13 +248,13 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'event.tasks.check_event_status',
         'schedule': crontab(minute='*/1'),  # Replace X with the number of minutes
     },
-    "check_flashbacks_nsfw": {
+     "check_flashbacks_nsfw": {
         'task': 'event.tasks.check_flashbacks_nsfw',
-        'schedule': crontab(minute='*/1'),  # Replace X with the number of minutes
+        'schedule': timedelta(seconds=5),  # Runs every 5 seconds
     },
     "process_flashbacks": {
         'task': 'event.tasks.process_flashbacks',
-        'schedule': crontab(minute='*/1'),  # Replace X with the number of minutes
+        'schedule': timedelta(seconds=5),  # Runs every 5 seconds
     },
 }
 

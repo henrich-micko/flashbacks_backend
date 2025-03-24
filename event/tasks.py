@@ -32,19 +32,19 @@ def process_flashbacks():
 
 """ Flashbacks instance spec tasks """
 
+
 @shared_task
 def check_nsfw_flashbacks(flashback_id: int):
     flashback = Flashback.objects.get(id=flashback_id)
 
     if flashback.media_type == FlashbackMediaType.PHOTO:
-        print("checking photo")
         if not flashback.media:
             return
+
         categories, flashback.is_nsfw = nsfw_detection.check_nsfw_photo_aws(flashback.media_key)
         flashback.save()
 
     if flashback.media_type == FlashbackMediaType.VIDEO:
-        print("checking video", flashback.video_media_key)
         if not flashback.video_media:
             return
 
@@ -52,23 +52,16 @@ def check_nsfw_flashbacks(flashback_id: int):
             flashback=flashback
         )
 
-        print(created)
-
         if not flashback_nsfw_job.is_valid:
             flashback_nsfw_job.delete()
             return
 
         if created:
-            print("starting")
-
-            flashback_nsfw_job.job_id = nsfw_detection.start_video_moderation(
-                flashback.video_media_key
-            )
+            flashback_nsfw_job.job_id = nsfw_detection.start_video_moderation(flashback.video_media_key)
             flashback_nsfw_job.save()
             return
 
-        categories, is_nsfw = nsfw_detection.get_video_moderation_results(flashback_nsfw_job.job_id)
-        print("getting", is_nsfw)
+        categories, is_nsfw = flashback_nsfw_job.load_result()
         if is_nsfw is not None:
             flashback.is_nsfw = is_nsfw
             flashback.save()

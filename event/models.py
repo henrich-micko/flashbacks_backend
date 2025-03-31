@@ -347,13 +347,15 @@ class EventPreview(models.Model):
 
     def switch_flashback_random(self):
         flashbacks = self.event.flashbacks.all()
+        if self.event.allow_nsfw is False:
+            flashbacks = flashbacks.exclude(is_nsfw=True)
+
         for preview in EventPreview.objects.filter(event=self.event).exclude(id=self.id):
             flashbacks.exclude(id=preview.flashback.id)
         if not flashbacks.exists():
             self.delete()
 
         self.flashback = random.choice(flashbacks)
-        print(f"switching for {self.flashback}")
         self.save()
 
 

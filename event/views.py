@@ -52,6 +52,13 @@ class EventViewSet(SearchAPIMixin, viewsets.ModelViewSet):
             role=event_models.EventMemberRole.HOST
         )
 
+    def perform_update(self, serializer) -> None:
+        instance: event_models.Event = serializer.save()
+        if not instance.allow_nsfw:
+            for preview in instance.eventpreview_set.all():
+                if preview.flashback.is_nsfw:
+                    preview.switch_flashback_random()
+
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.events.order_by("-start_at")
 

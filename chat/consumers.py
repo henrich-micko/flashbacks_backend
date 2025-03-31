@@ -109,6 +109,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         group_name, message_data = await store_and_serializer_message()
         if message_data is None: return
 
+        if group_name not in self.joined_groups:
+            self.channel_layer.group_add(group_name, self.channel_name)
+
         await self.channel_layer.group_send(
             group_name,
             self.generate_chat_message(
@@ -173,7 +176,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         data = json.loads(text_data)
-        print(data)
+
         message_type, message_data = data.get(self.MESSAGE_TYPE_FIELD, None), data.get(self.MESSAGE_DATA_FIELD, None)
         if type(message_type) is not int or type(message_data) is not dict:
             return

@@ -6,7 +6,7 @@ def _process_result(result):
     nsfw_labels = ["Explicit Nudity", "Suggestive", "Violence", "Drugs"]
 
     categories = {
-        label["ModerationLabel"]["Name"]: label["Confidence"]
+        label["ModerationLabel"]["Name"]: label["ModerationLabel"]["Confidence"]
         for label in result["ModerationLabels"]
         if label["ModerationLabel"]["Name"] in nsfw_labels
     }

@@ -131,6 +131,7 @@ class EventMemberSerializer(serializers.ModelSerializer):
 class FlashbackSerializer(serializers.ModelSerializer):
     created_by = serializers.SerializerMethodField()
     preview_order = serializers.SerializerMethodField()
+    show = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Flashback
@@ -142,6 +143,7 @@ class FlashbackSerializer(serializers.ModelSerializer):
             "created_at",
             "created_by",
             "preview_order",
+            "show"
         ]
 
     def get_created_by(self, obj: models.Flashback):
@@ -150,6 +152,11 @@ class FlashbackSerializer(serializers.ModelSerializer):
     def get_preview_order(self, obj: models.Flashback):
         preview = obj.eventpreview_set.first()
         return preview.order if preview is not None else None
+
+    def get_view(self, obj: models.Flashback):
+        if obj.event.allow_nsfw:
+            return True
+        return obj.is_nsfw is True or obj.is_nsfw is None
 
     def validate(self, data):
         media = data.get("media")

@@ -153,7 +153,7 @@ class FlashbackSerializer(serializers.ModelSerializer):
         preview = obj.eventpreview_set.first()
         return preview.order if preview is not None else None
 
-    def get_view(self, obj: models.Flashback):
+    def get_show(self, obj: models.Flashback):
         if obj.event.allow_nsfw:
             return True
         return obj.is_nsfw is True or obj.is_nsfw is None

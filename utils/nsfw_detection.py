@@ -6,9 +6,9 @@ def _process_result(result):
     nsfw_labels = ["Explicit Nudity", "Suggestive", "Violence", "Drugs"]
 
     categories = {
-        label["Name"]: label["Confidence"]
+        label["ModerationLabel"]["Name"]: label["Confidence"]
         for label in result["ModerationLabels"]
-        if label["Name"] in nsfw_labels
+        if label["ModerationLabel"]["Name"] in nsfw_labels
     }
 
     is_nsfw = any(confidence > 75 for confidence in categories.values())

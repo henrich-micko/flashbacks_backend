@@ -5,11 +5,12 @@ import boto3
 def _process_result(result):
     nsfw_labels = ["Explicit Nudity", "Suggestive", "Violence", "Drugs"]
 
-    categories = {
-        label["ModerationLabel"]["Name"]: label["ModerationLabel"]["Confidence"]
-        for label in result["ModerationLabels"]
-        if label["ModerationLabel"]["Name"] in nsfw_labels
-    }
+    categories = {}
+    for label in result["ModerationLabels"]:
+        is_video = True if label.get("ModerationLabel", None) else False
+        label_data = label["ModerationLabel"] if is_video else label
+        if label_data["Name"] in nsfw_labels:
+            categories[label_data["Name"]] = label_data["Confidence"]
 
     is_nsfw = any(confidence > 75 for confidence in categories.values())
 

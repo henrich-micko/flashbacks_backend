@@ -354,6 +354,7 @@ class EventPreview(models.Model):
             flashbacks = flashbacks.exclude(id=preview.flashback.id)
         if not flashbacks.exists():
             self.delete()
+            return
 
         self.flashback = random.choice(flashbacks)
         self.save()

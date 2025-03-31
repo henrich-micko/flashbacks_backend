@@ -351,7 +351,7 @@ class EventPreview(models.Model):
             flashbacks = flashbacks.exclude(is_nsfw=True)
 
         for preview in EventPreview.objects.filter(event=self.event).exclude(id=self.id):
-            flashbacks.exclude(id=preview.flashback.id)
+            flashbacks = flashbacks.exclude(id=preview.flashback.id)
         if not flashbacks.exists():
             self.delete()
 

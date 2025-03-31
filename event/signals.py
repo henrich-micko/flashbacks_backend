@@ -20,3 +20,12 @@ def check_for_preview(sender, instance, **kwargs):
     preview = models.EventPreview.objects.filter(flashback=instance).first()
     if preview is not None:
         preview.switch_flashback_random()
+
+
+@receiver(post_save, sender=models.Flashback)
+def check_for_nsfw_preview(sender, instance, **kwargs):
+    if not instance.is_nsfw:
+        return
+    preview = models.EventPreview.objects.filter(flashback=instance).first()
+    if preview is not None:
+        preview.switch_flashback_random()

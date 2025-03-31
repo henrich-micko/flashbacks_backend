@@ -156,7 +156,7 @@ class FlashbackSerializer(serializers.ModelSerializer):
     def get_show(self, obj: models.Flashback):
         if obj.event.allow_nsfw:
             return True
-        return obj.is_nsfw is True or obj.is_nsfw is None
+        return obj.is_nsfw is False or obj.is_nsfw is None
 
     def validate(self, data):
         media = data.get("media")

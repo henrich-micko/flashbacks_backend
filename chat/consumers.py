@@ -109,9 +109,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         group_name, message_data = await store_and_serializer_message()
         if message_data is None: return
 
-        if group_name not in self.joined_groups:
-            self.channel_layer.group_add(group_name, self.channel_name)
-
         await self.channel_layer.group_send(
             group_name,
             self.generate_chat_message(

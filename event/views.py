@@ -221,7 +221,7 @@ class EventFlashbackViewSet(mixins.ListModelMixin,
             nsfw_flashbacks = [i.id for i in queryset.filter(is_nsfw=True)]
             queryset = queryset.exclude(id__in=nsfw_flashbacks)
 
-        return queryset
+        return queryset.order_by("created_at")
 
     def perform_create(self, serializer):
         event_member = get_object_or_exception(

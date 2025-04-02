@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,15 +28,21 @@
             font-weight: 900;  /* Make the title bolder */
         }
 
-        p {
+        p, a {
             margin-top: 0px;
             font-size: 18px;
             font-weight: 700;  /* Make the paragraph bolder */
+        }
+
+        a {
+            color: rgba(206, 180, 180, 1);
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <h1>Flashbacks</h1>
     <p>Share memories and connect the dots</p>
+    <a href="{% static 'flashbacks.apk' %}" download>~ Download for Android ~</a>
 </body>
 </html>

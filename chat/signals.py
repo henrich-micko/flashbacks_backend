@@ -13,8 +13,8 @@ def add_user_to_event_chat(sender, instance, created, **kwargs):
     channel_layer = get_channel_layer()
     event_id = instance.event.id
     user_id = instance.user.id
+    print("adding to", event_id, user_id)
 
-    async_to_sync(channel_layer.group_add)(
-        f"event_{event_id}_chat",
-        f"user_{user_id}"
+    async_to_sync(channel_layer.group_send)(
+        f"user_{user_id}", {"type": "add_user_to_group", "event_id": event_id}
     )

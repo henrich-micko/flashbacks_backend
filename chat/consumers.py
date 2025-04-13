@@ -83,7 +83,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return list(self.user.events)
 
     async def add_user_to_group(self, event):
-        event_id = event["event_id"]
+        event_id = event.get("event_id", None)
+        if event_id is None: return
         event_group_name = self.event_group_name_format.format(event_id=event_id)
         await self.channel_layer.group_add(event_group_name, self.channel_name)
 
@@ -121,8 +122,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try: message_id = int(data.get("id"))
         except (ValueError, TypeError): return None
 
-        print(message_id)
-
         @sync_to_async
         def like_unlike_message():
             try: message = Message.objects.get(pk=message_id)
@@ -153,6 +152,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event["data"]))
+
+    async def add_to_group(self, event):
+        pass
 
     """
     on events
